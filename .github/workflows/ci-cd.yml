@@ -47,11 +47,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test
 
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+
+    # деплой только если push в master И env не пустые
     if: github.event_name == 'push' &&
       github.ref == 'refs/heads/master' &&
-      secrets.DEPLOY_HOST != '' &&
-      secrets.DEPLOY_USER != '' &&
-      secrets.DEPLOY_SSH_KEY != ''
+      env.DEPLOY_HOST != '' &&
+      env.DEPLOY_USER != '' &&
+      env.DEPLOY_SSH_KEY != ''
 
     steps:
       - name: Checkout repo
