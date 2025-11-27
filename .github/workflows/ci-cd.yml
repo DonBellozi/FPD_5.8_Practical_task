@@ -81,3 +81,4 @@ jobs:
             git pull
             mvn -B clean package -DskipTests
             sudo systemctl restart vo_hw.service
+# Просто что бы запустить коммит
