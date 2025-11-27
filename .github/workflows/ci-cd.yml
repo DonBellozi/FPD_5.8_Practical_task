@@ -47,23 +47,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test
 
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-
-    # деплой только если push в master И env не пустые
-    if: github.event_name == 'push' &&
-      github.ref == 'refs/heads/master' &&
-      env.DEPLOY_HOST != '' &&
-      env.DEPLOY_USER != '' &&
-      env.DEPLOY_SSH_KEY != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
+      - name: Check deploy secrets
+        id: check
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.DEPLOY_HOST }}" ] && \
+             [ -n "${{ secrets.DEPLOY_USER }}" ] && \
+             [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Deploy secrets are not set. Skipping deploy."
+          fi
+
       - name: Checkout repo
+        if: steps.check.outputs.should_deploy == 'true'
         uses: actions/checkout@v4
 
       - name: Deploy via SSH
+        if: steps.check.outputs.should_deploy == 'true'
         uses: appleboy/ssh-action@v1.2.3
         with:
           host: ${{ secrets.DEPLOY_HOST }}
